@@ -125,7 +125,16 @@ What works instead, in order of intrusion:
 | Windows SDK | 10.0.22621.0 and 10.0.26100.0 |
 | DUB | 1.42.0 (2026-08-17), `C:\D\dmd2\windows\bin` |
 | Dub registry reachability | `code.dlang.org` returns HTTP 200 |
-| Clone | first attempt failed with `RPC failed; curl 92 HTTP/2 stream reset`; retried with `http.version=HTTP/1.1` and `--depth 1 --shallow-submodules` |
+| Source tree | `E:\repo\inochi-creator-v08\` — `dub.sdl` is 4,196 bytes (identical to GitHub's), `LICENSE`, `source/`, `res/`, `.gitmodules`, and `source/creator/viewport/common/automesh/{automesh,contours,grid,package}.d` are present |
+| How the source got there | two direct `git clone` attempts died mid-transfer (`RPC failed; curl 92 HTTP/2 stream reset`, then `early EOF` with HTTP/1.1 as well). The codeload snapshot through the mirror worked: `curl -L https://gh-proxy.com/https://codeload.github.com/Inochi2D/inochi-creator/tar.gz/refs/heads/v0_8`. A tarball carries **no submodule content**, so submodules must be fetched separately before a build. |
+
+## Why the user never needs a D toolchain
+
+`dub` is a **build-machine** dependency, not a user's. The implemented capabilities declare no external
+requirement at all (`inochi2d doctor` proves it on the machine it runs on), and the two that do need D —
+mesh generation and rendering — are meant to be built once and shipped as an artefact, which BSD-2 permits as
+long as the licence text travels with it (see `THIRD_PARTY_NOTICES.md`). Building from source stays possible,
+and a Python port remains the fallback for environments with no Windows at all.
 
 ## Open questions recorded, not assumed
 
