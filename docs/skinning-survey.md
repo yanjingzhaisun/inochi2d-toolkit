@@ -31,9 +31,27 @@ rather than weights.
 - `grid.d` (232 lines): compute the opaque bounds from the alpha channel (`minX/minY`), `divideAxes()`, a
   per-axis scale configuration, then place a grid of vertices. **[source]**
 
-Consequence: mesh generation is **not** something we have to invent or import from a paper. The algorithms are
-BSD-2, from the same project, and small enough to port to Python (or to drive through the headless bridge once
-it exists). Compare with the published recipes, which are parameterisations of the same idea:
+Consequence: mesh generation is **not** something we have to invent or port. The base class is a thin
+interface over a pure computation (`source/creator/viewport/common/automesh/automesh.d`):
+
+```d
+class AutoMeshProcessor {
+public:
+    abstract IncMesh autoMesh(Drawable targets, IncMesh meshData, bool mirrorHoriz = false, float axisHoriz = 0,
+                             bool mirrorVert = false, float axisVert = 0);
+    abstract void configure();   // settings panel (ImGui)
+    abstract string icon();      // toolbar icon
+};
+```
+
+`autoMesh()` takes a `Drawable` plus the existing mesh and returns an `IncMesh` — no window, no viewport
+state, and the base class imports only `creator.viewport.common.mesh` and `inochi2d.core`. The GUI coupling is
+confined to `configure()`/`icon()`. The processors are instantiated in
+`source/creator/viewport/vertex/package.d` as `new ContourAutoMeshProcessor()` / `new GridAutoMeshProcessor()`.
+
+So the real constraint is not "port it" but "**there is no call site**": the classes live inside the GUI
+binary, with no CLI, no shared library and no IPC. Adding one entry point beside the one we already need for
+rendering is the whole job. Compare with the published recipes, which are parameterisations of the same idea:
 
 | Source | Recipe | Grade |
 | --- | --- | --- |
@@ -65,9 +83,11 @@ animation engine. [source]/[upstream]
 
 ## What this means for us
 
-1. **Mesh: port, do not invent.** Inochi's own `contours.d`/`grid.d` are the closest thing to ground truth for
-   our target format and are already tuned for it. Porting them to Python is a contained job and keeps
-   `from-layers` dependency-free.
+1. **Mesh: call the editor's own automesh, do not port it.** `AutoMeshProcessor.autoMesh()` is a pure function
+   over a Drawable; it only lacks an entry point. The bridge we need for `render` (a rendered PNG for human
+   review) is the same bridge that can expose `--auto-mesh`, so the marginal cost is one more command, not a
+   second subsystem. A Python port is a **fallback**, justified only if we later need meshes inside the
+   container/CI with no Windows in the loop, or if the build turns out to be blocked.
 2. **Binding: heuristics first, models later.** No released model produces Inochi bindings, and the two
    learned options are paper-only today. The tractable first version is geometric and deterministic:
    parameter-role templates (head angle grid, eye open, mouth open, breath, hair follow) with per-parameter
@@ -81,7 +101,13 @@ animation engine. [source]/[upstream]
 
 ## Open questions recorded, not assumed
 
-- Does Creator's automesh have a headless entry point, or must we port it and write meshes ourselves?
+- Does `autoMesh()`'s texture access work without a GL context? The processors build a CPU-side `Image` from
+  the drawable's texture; whether pixel access needs an uploaded texture is unverified.
+- The build is the real risk, not the call: Creator must compile (DMD is installed; the VS2022 C++ workload is
+  unverified, and `bindbc-imgui` must be pinned to 0.7.0).
+- Are the automesh settings (sampling rate, scale, erode/dilate, grid axis scales) settable as plain instance
+  fields from a headless caller, given `configure()` is the ImGui-only path? Verified shape says yes; not yet
+  exercised.
 - Is the 8,884-model Live2D corpus ever released? It would be the only route to *learning* Inochi-style
   bindings (the formats differ, but the displacement semantics are close).
 - SpriteToMesh's abstract says the trained model is released; the location is unverified here.

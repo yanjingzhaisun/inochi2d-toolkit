@@ -18,7 +18,7 @@ Status as of the first commit (2026-09-24). Ordered by "what unblocks the next t
 Goal: render a puppet to PNG with no human in the loop, so every later step can be reviewed visually.
 
 - [ ] `bridge/`: patch Inochi Creator `v0_8` with a headless CLI (`--load`, `--set-param`, `--export-inp`,
-      `--render-png`) and build it (D compiler + VS2022 C++ + CMake; `bindbc-imgui` must be a recursive
+      `--render-png`, `--auto-mesh`) and build it (D compiler + VS2022 C++ + CMake; `bindbc-imgui` must be a recursive
       clone pinned to 0.7.0).
 - [ ] `inochi2d render` in the CLI, calling the bridge on a workstation.
 - [ ] Fixed-parameter render regression: same puppet + same params ⇒ comparable PNG.
