@@ -60,6 +60,24 @@ Consequences:
 - [ ] Displacement fields for head-turn / squash-and-stretch are to be **computed from the layer geometry
       and parameter intent**, not sampled from any 3D asset.
 
+## Upstream contribution — **hold until our side is stable** (decided 2026-09-24)
+
+Owner's call: no PR to `Inochi2D/inochi-creator` yet. When our own toolchain is proven, in this order:
+
+1. Fix the adjacent bug first: `--version`, `--help` and any non-file argument **segfault** (upstream issue
+   #335, open since 2024-02-28 with two comments, reported by the Arch package maintainer). Small,
+   uncontroversial, and it opens the relationship.
+2. Then offer headless/batch mode (`--load`, `--set-param`, `--auto-mesh`, `--export-inp`, `--render-png`),
+   designed **small and format-agnostic**: argument parsing in `app.d` plus calls into existing internals,
+   nothing in the format or renderer core — so it can be accepted on `v0_8` and survive a 0.9 rebase.
+
+Why that order (checked 2026-09-24): the default branch is `v0_8`; the most recent merge was the Russian
+translation PR #485 (2025-03-12); last push was 2025-06-16; 144 issues are open; there is no `CONTRIBUTING.md`
+and no PR template. Review latency is measured in months, so the upstream route must never be a prerequisite
+for our own capability — the link route and our own built artefact stay the primary path.
+
+When a patch does land upstream, drop the "we ship a patched build" note from `THIRD_PARTY_NOTICES.md`.
+
 ## Non-goals
 
 - Reimplementing the Inochi runtime/renderer (a Rust port exists; it does not yet support `MeshGroup` or
