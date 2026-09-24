@@ -18,6 +18,7 @@ Inochi2D 没有官方插件/IPC 接口，它的编辑器（Inochi Creator）是�
 | `inspect` | 已实现 | 读 puppet 并打印结构（节点、参数、纹理），支持 `--json`/`--tree` |
 | `verify` | 已实现 | 读 → 写 → 读 的 round-trip，**外加**结构校验 |
 | `textures` | 已实现 | 导出内嵌纹理 |
+| `doctor` | 已实现 | 报告本机实际能做什么 |
 | `from-layers` | 计划中 | 分层图 → 已绑骨的 puppet（生成网格 + 参数绑定） |
 | `render` | 计划中 | 无头渲染存 PNG（经 Creator bridge） |
 | `bridge` | 计划中 | 在工作站上安装/刷新 Creator 控制桥 |
@@ -31,6 +32,9 @@ Inochi2D 没有官方插件/IPC 接口，它的编辑器（Inochi Creator）是�
   没有可复用的东西，而我们手上那个 3D 资产只是中间产物，**明确不作参照**。
 - **上游素材是开放依赖。** 立绘仍在制作中，其拆层尚未达标；因此 `from-layers` 会校验拿到的东西，而不是相信它。
 - **人只做视觉审核。** 直到渲染出 PNG 为止的一切都应无人值守地跑完；审核者看图，不看文件。
+- **在你要更多之前，只需要 Python。** 所有已实现命令只用标准库——新克隆下来直接能跑，不需要 D 工具链、
+  不需要 Inochi Creator、不需要网络。计划中的 `from-layers`/`render` 需要一次性 D 构建（见
+  `docs/skinning-survey.md`），由 `inochi2d doctor` 报告本机有没有，而不是到时报错。
 
 ## 安装
 
@@ -48,6 +52,7 @@ inochi2d inspect out.inx --tree               # 结构
 inochi2d verify out.inx --warnings            # round-trip + 校验，出错退出码 1
 inochi2d textures out.inx --out ./textures    # 导出纹理
 inochi2d status                               # 能力表
+inochi2d doctor                               # 本机实际能做什么（--json 给机器读）
 ```
 
 回归语料（官方样例，下载而来、不提交进仓）：
@@ -63,7 +68,7 @@ pytest -q
 python -m inochi2d_toolkit.mcp_server          # stdio
 ```
 
-工具：`inochi_status`、`inochi_inspect`、`inochi_verify`、`inochi_extract_textures`、`inochi_new_minimal`。
+工具：`inochi_status`、`inochi_doctor`、`inochi_inspect`、`inochi_verify`、`inochi_extract_textures`、`inochi_new_minimal`。
 
 注册到 MCP 客户端（以 Hermes 为例）：
 

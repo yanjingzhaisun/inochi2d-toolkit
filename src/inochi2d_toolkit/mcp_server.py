@@ -42,6 +42,19 @@ def inochi_status() -> dict[str, Any]:
 
 
 @mcp.tool()
+def inochi_doctor() -> dict[str, Any]:
+    """Report what this install can do: environment checks and per-capability readiness.
+
+    Use it before calling anything else — capabilities that need the optional
+    bridge (mesh generation, rendering) report why they are blocked instead of
+    failing later.
+    """
+    from .cli import doctor_report
+
+    return doctor_report()
+
+
+@mcp.tool()
 def inochi_inspect(path: str) -> dict[str, Any]:
     """Read a puppet (.inx/.inp) and return its structure as JSON.
 

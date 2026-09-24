@@ -13,8 +13,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
+import os
+import platform
 import random
+import shutil
 import sys
 from pathlib import Path
 
@@ -29,10 +33,28 @@ CAPABILITIES: dict[str, tuple[str, str]] = {
     "inspect": ("implemented", "read a puppet and print its structure"),
     "verify": ("implemented", "round-trip + structural validation"),
     "textures": ("implemented", "extract embedded textures"),
+    "doctor": ("implemented", "report what this install can actually do"),
     "from-layers": ("planned", "build a rigged puppet from layered art (mesh + bindings)"),
     "render": ("planned", "headless render of a puppet to PNG (needs the Creator bridge)"),
     "bridge": ("planned", "install/refresh the Creator CLI bridge on a workstation"),
 }
+
+# External things a capability needs. The implemented ones need nothing at all,
+# which is the point: a fresh clone runs without a D toolchain, without Inochi
+# Creator and without network access.
+REQUIREMENTS: dict[str, tuple[str, ...]] = {
+    "new": (),
+    "inspect": (),
+    "verify": (),
+    "textures": (),
+    "doctor": (),
+    "from-layers": ("bridge",),
+    "render": ("bridge",),
+    "bridge": ("d-toolchain", "creator-source"),
+}
+
+BRIDGE_ENV = "INOCHI2D_BRIDGE"
+CREATOR_ENV = "INOCHI2D_CREATOR"
 
 
 def _sha256(path: Path) -> str:
@@ -140,6 +162,142 @@ def cmd_status(_: argparse.Namespace) -> int:
     return 0
 
 
+def find_bridge() -> Path | None:
+    """Locate the optional headless bridge executable, if this machine has one."""
+    override = os.environ.get(BRIDGE_ENV)
+    if override:
+        candidate = Path(override)
+        if candidate.is_file():
+            return candidate
+    for name in ("inochi2d-bridge", "inochi2d-bridge.exe"):
+        found = shutil.which(name)
+        if found:
+            return Path(found)
+    return None
+
+
+def find_creator() -> Path | None:
+    """Locate an installed Inochi Creator, which is only needed by the bridge."""
+    override = os.environ.get(CREATOR_ENV)
+    if override:
+        candidate = Path(override)
+        if candidate.is_file():
+            return candidate
+    for name in ("Inochi Creator", "Inochi Creator.exe", "inochi-creator"):
+        found = shutil.which(name)
+        if found:
+            return Path(found)
+    guesses: list[Path] = []
+    if sys.platform == "win32":
+        for root in (os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)"), "E:\\Programs"):
+            if root:
+                guesses += [
+                    Path(root) / "Inochi2D" / "creator" / "Inochi Creator.exe",
+                    Path(root) / "Inochi2D" / "Inochi Creator.exe",
+                ]
+    for candidate in guesses:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def doctor_report() -> dict[str, object]:
+    """What this install can actually do, checked rather than assumed.
+
+    Returns a dict so the CLI, the MCP tool and the tests all read the same
+    measurement. Nothing here imports an optional dependency, so the check
+    itself never needs anything beyond the standard library.
+    """
+    bridge = find_bridge()
+    creator = find_creator()
+    source_env = os.environ.get("INOCHI2D_CREATOR_SOURCE")
+    checks = [
+        {
+            "check": "python",
+            "ok": sys.version_info >= (3, 10),
+            "detail": f"{platform.python_version()} (needs >= 3.10)",
+        },
+        {"check": "core", "ok": True, "detail": "inp/puppet/build import from the standard library only"},
+        {
+            "check": "extra:mcp",
+            "ok": importlib.util.find_spec("mcp") is not None,
+            "detail": "optional: only the MCP server shell needs it",
+        },
+        {
+            "check": "extra:rig",
+            "ok": importlib.util.find_spec("numpy") is not None and importlib.util.find_spec("PIL") is not None,
+            "detail": "optional: numpy/Pillow for the planned rigging work",
+        },
+        {
+            "check": "d-toolchain",
+            "ok": shutil.which("dub") is not None,
+            "detail": "optional: only needed to build the bridge from source",
+        },
+        {
+            "check": "creator-source",
+            "ok": bool(source_env) or (Path.cwd() / "source" / "creator").is_dir(),
+            "detail": "optional: a v0_8 clone, for building the bridge",
+        },
+        {
+            "check": "bridge",
+            "ok": bridge is not None,
+            "detail": f"optional: {bridge}" if bridge else f"optional: set ${BRIDGE_ENV} or put inochi2d-bridge on PATH",
+        },
+        {
+            "check": "creator-install",
+            "ok": creator is not None,
+            "detail": f"optional: {creator}" if creator else "optional: an installed Creator, for GUI-side checks",
+        },
+    ]
+
+    found = {entry["check"]: bool(entry["ok"]) for entry in checks}
+    capabilities = []
+    for name, (status, description) in CAPABILITIES.items():
+        needs = REQUIREMENTS.get(name, ())
+        missing = [need for need in needs if not found.get(need, False)]
+        capabilities.append(
+            {
+                "capability": name,
+                "status": status,
+                "needs": list(needs),
+                "ready": not missing,
+                "blocked_by": missing,
+                "description": description,
+            }
+        )
+
+    return {
+        "toolkit_version": __version__,
+        "checks": checks,
+        "capabilities": capabilities,
+        "implemented_ready": all(c["ready"] for c in capabilities if c["status"] == "implemented"),
+    }
+
+
+def cmd_doctor(args: argparse.Namespace) -> int:
+    report = doctor_report()
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return 0 if report["implemented_ready"] else 1
+
+    print(f"inochi2d-toolkit {report['toolkit_version']}")
+    print("environment")
+    for entry in report["checks"]:
+        mark = "ok     " if entry["ok"] else "missing"
+        print(f"  {mark} {entry['check']:<16} {entry['detail']}")
+    print("capabilities")
+    for entry in report["capabilities"]:
+        state = "ready  " if entry["ready"] else "blocked"
+        blocked = f"  needs {', '.join(entry['blocked_by'])}" if entry["blocked_by"] else ""
+        print(f"  {state} {entry['capability']:<12} {entry['status']:<11}{blocked}")
+    print()
+    if report["implemented_ready"]:
+        print("Every implemented capability runs here with nothing but Python.")
+    else:
+        print("An implemented capability is missing something required — see the missing lines above.")
+    return 0 if report["implemented_ready"] else 1
+
+
 # --------------------------------------------------------------------------- #
 # argparse wiring
 # --------------------------------------------------------------------------- #
@@ -178,6 +336,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("status", help="print the capability matrix")
     p.set_defaults(func=cmd_status)
+
+    p = sub.add_parser("doctor", help=CAPABILITIES["doctor"][1])
+    p.add_argument("--json", action="store_true", help="machine-readable report")
+    p.set_defaults(func=cmd_doctor)
     return parser
 
 

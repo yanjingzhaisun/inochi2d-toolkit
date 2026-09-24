@@ -24,6 +24,7 @@ Honesty rule (inherited from our pipeline lab): every capability is labelled
 | `inspect` | implemented | read a puppet, print structure (nodes, params, textures), `--json`/`--tree` |
 | `verify` | implemented | read → write → read round-trip **plus** structural validation |
 | `textures` | implemented | extract embedded textures |
+| `doctor` | implemented | report what this install can actually do |
 | `from-layers` | planned | layered art → rigged puppet (mesh generation + parameter bindings) |
 | `render` | planned | headless render to PNG (via the Creator bridge) |
 | `bridge` | planned | install/refresh the Creator control bridge on a workstation |
@@ -41,6 +42,10 @@ Honesty rule (inherited from our pipeline lab): every capability is labelled
   not yet acceptable; `from-layers` therefore validates whatever it is handed instead of trusting it.
 - **Visual review is the human's only step.** Everything up to and including a rendered PNG is meant to run
   unattended; the reviewer looks at pictures, not at files.
+- **Python only, until you ask for more.** Every implemented command needs nothing but the standard library —
+  a fresh clone runs with no D toolchain, no Inochi Creator and no network. The planned `from-layers`/`render`
+  path needs a one-time D build (see `docs/skinning-survey.md`), and `inochi2d doctor` reports whether this
+  machine has it rather than failing later.
 
 ## Install
 
@@ -58,6 +63,7 @@ inochi2d inspect out.inx --tree               # structure
 inochi2d verify out.inx --warnings            # round-trip + validation, exit 1 on error
 inochi2d textures out.inx --out ./textures    # pull textures out
 inochi2d status                               # capability matrix
+inochi2d doctor                               # what this install can actually do (--json for machines)
 ```
 
 Regression corpus (official samples, downloaded not committed):
@@ -73,7 +79,8 @@ pytest -q
 python -m inochi2d_toolkit.mcp_server          # stdio
 ```
 
-Tools: `inochi_status`, `inochi_inspect`, `inochi_verify`, `inochi_extract_textures`, `inochi_new_minimal`.
+Tools: `inochi_status`, `inochi_doctor`, `inochi_inspect`, `inochi_verify`, `inochi_extract_textures`,
+`inochi_new_minimal`.
 
 Register with an MCP client (Hermes example):
 

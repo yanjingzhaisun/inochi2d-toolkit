@@ -19,6 +19,7 @@ Inochi2D には公式のプラグイン/IPC 口がなく、エディタ（Inochi
 | `inspect` | 実装済み | パペットを読み、構造（ノード・パラメータ・テクスチャ）を表示。`--json`/`--tree` 対応 |
 | `verify` | 実装済み | 読み → 書き → 読み の往復**に加えて**構造検証 |
 | `textures` | 実装済み | 埋め込みテクスチャを抽出 |
+| `doctor` | 実装済み | この環境で実際に何ができるかを報告 |
 | `from-layers` | 計画中 | レイヤー画像 → リグ済みパペット（メッシュ生成 + パラメータバインディング） |
 | `render` | 計画中 | ヘッドレスで PNG にレンダリング（Creator bridge 経由） |
 | `bridge` | 計画中 | ワークステーションに Creator 制御ブリッジを導入/更新 |
@@ -36,6 +37,10 @@ Inochi2D には公式のプラグイン/IPC 口がなく、エディタ（Inochi
   したがって `from-layers` は渡されたものを信用せず、検証します。
 - **人間の工程は視覚確認だけです。** PNG をレンダリングするところまでは無人で走る想定で、確認する人は
   ファイルではなく絵を見ます。
+- **より多くを求めるまでは Python だけで動きます。** 実装済みのコマンドは標準ライブラリしか使わないため、
+  クローンしただけで動き、D ツールチェーンも Inochi Creator もネットワークも要りません。計画中の
+  `from-layers`/`render` は一度きりの D ビルドを必要とし（`docs/skinning-survey.md` 参照）、この環境に
+  あるかどうかは `inochi2d doctor` が報告します。後から失敗させません。
 
 ## インストール
 
@@ -53,6 +58,7 @@ inochi2d inspect out.inx --tree               # 構造
 inochi2d verify out.inx --warnings            # 往復 + 検証、エラー時は終了コード 1
 inochi2d textures out.inx --out ./textures    # テクスチャ抽出
 inochi2d status                               # 機能マトリクス
+inochi2d doctor                               # この環境で実際に何ができるか（--json は機械向け）
 ```
 
 回帰用コーパス（公式サンプル。ダウンロードするもので、コミットはしません）：
@@ -68,7 +74,7 @@ pytest -q
 python -m inochi2d_toolkit.mcp_server          # stdio
 ```
 
-ツール：`inochi_status`、`inochi_inspect`、`inochi_verify`、`inochi_extract_textures`、`inochi_new_minimal`。
+ツール：`inochi_status`、`inochi_doctor`、`inochi_inspect`、`inochi_verify`、`inochi_extract_textures`、`inochi_new_minimal`。
 
 MCP クライアントへの登録例（Hermes）：
 

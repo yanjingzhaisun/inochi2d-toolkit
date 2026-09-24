@@ -9,7 +9,11 @@ Status as of the first commit (2026-09-24). Ordered by "what unblocks the next t
 - `puppet.py`: structural summary + validation (uuid uniqueness, mesh uv/vertex parity, index range,
   texture-id range, mask modes, binding targets, physics sanity).
 - `build.py`: minimal puppet + node/uuid helpers.
-- `cli.py` / `mcp_server.py`: `new`, `inspect`, `verify`, `textures`, `status`.
+- `cli.py` / `mcp_server.py`: `new`, `inspect`, `verify`, `textures`, `status`, `doctor`.
+- `doctor` states the dependency promise in code: every implemented capability declares no external
+  requirement, and a missing optional (bridge, D toolchain, Creator) is reported as `blocked` per capability
+  instead of surfacing later as a failure. `tests/test_capability_sync.py` holds `CAPABILITIES`, the three
+  README tables, the roadmap and the doctor report together.
 - Regression: official `empty08.inx` re-serialises byte-for-byte; `ada-static.inx` round-trips with its
   texture intact.
 
@@ -19,7 +23,11 @@ Goal: render a puppet to PNG with no human in the loop, so every later step can 
 
 - [ ] `bridge/`: patch Inochi Creator `v0_8` with a headless CLI (`--load`, `--set-param`, `--export-inp`,
       `--render-png`, `--auto-mesh`) and build it (D compiler + VS2022 C++ + CMake; `bindbc-imgui` must be a recursive
-      clone pinned to 0.7.0).
+      clone pinned to 0.7.0). Build prerequisites **verified on the workstation 2026-09-24**: VS2022 with the
+      VC++ x86/x64 tools, Windows SDK 10.0.22621.0/10.0.26100.0, DUB 1.42.0, dub registry reachable.
+- [ ] Prefer the **link** route over patching where possible (our own `dub` recipe importing the automesh
+      modules) — upstream stays untouched, and the call site is ours. See `docs/skinning-survey.md`.
+- [ ] Build once, ship the artefact: the D toolchain is a build-machine dependency, never a user's.
 - [ ] `inochi2d render` in the CLI, calling the bridge on a workstation.
 - [ ] Fixed-parameter render regression: same puppet + same params ⇒ comparable PNG.
 
