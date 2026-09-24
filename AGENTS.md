@@ -33,6 +33,17 @@ Read `README.md` and `docs/architecture.md` before changing anything. Then:
 - Add a test with every behaviour; if a rule cannot be tested, it goes in `docs/` as an open question
   instead of into code as an assumption.
 
+## Documentation
+
+- The README is maintained in three languages: `README.md` (**English, the standard entry point**),
+  `README.zh-CN.md`, `README.ja.md`. Change all three in the same commit — a section added to one and missing
+  from another is a defect, not a nicety.
+- Translations follow the English text. If they disagree, English is correct; fix the translation.
+- Every localised README keeps its language switcher on line 3 and states that English is canonical.
+- Section order and the capability table must match across all three; only wording is translated.
+- Behaviour docs (`README.md`, `AGENTS.md`, `docs/`) describe what exists — planned work stays labelled
+  *planned* in all languages.
+
 ## Repository hygiene
 
 - Source only: no editor binaries, no Inochi SDKs, no model files, no large experiment output in git.

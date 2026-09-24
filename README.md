@@ -1,5 +1,10 @@
 # inochi2d-toolkit
 
+**English** (canonical) · [中文](README.zh-CN.md) · [日本語](README.ja.md)
+
+> This English README is the standard entry point. The other two follow it: if a translation drifts, the
+> English text is correct, so send a pull request rather than letting the versions diverge quietly.
+
 Read, verify and (progressively) **build Inochi2D puppets** — as a CLI for humans and scripts, and as an
 MCP server for agents. Both surfaces are thin wrappers over the same core, so nothing can silently diverge.
 
