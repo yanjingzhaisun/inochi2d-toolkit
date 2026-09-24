@@ -117,6 +117,11 @@ texture*     each: uint32 length, uint8 encoding (0=PNG, 1=TGA, 2=BC7), payload
 
 ## Credits / licence
 
-BSD-2-Clause (see `LICENSE`). Inochi2D, Inochi Creator and Inochi Session are BSD-2-Clause projects by the
-Inochi2D Project; this toolkit is independent and not affiliated with them. The downloaded official samples
-remain under their original licence.
+MIT (see `LICENSE`) — chosen for recognition, not for a difference in permission: MIT and BSD-2-Clause grant
+the same rights (use, modify, redistribute, sublicense, sell, closed-source) and neither is copyleft, so the
+licence here is not constrained by the upstream projects.
+
+This toolkit is independent and not affiliated with the Inochi2D Project. It contains **no upstream code**:
+the reader/writer was written from the format's own behaviour, verified against the official samples. Inochi2D,
+Inochi Creator and Inochi Session are BSD-2-Clause projects by the Inochi2D Project; the official samples are
+downloaded by `tools/fetch_examples.py` and **not redistributed here**, so they stay under their own licence.
