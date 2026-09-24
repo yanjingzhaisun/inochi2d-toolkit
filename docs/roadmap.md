@@ -25,6 +25,18 @@ Goal: render a puppet to PNG with no human in the loop, so every later step can 
       `--render-png`, `--auto-mesh`) and build it (D compiler + VS2022 C++ + CMake; `bindbc-imgui` must be a recursive
       clone pinned to 0.7.0). Build prerequisites **verified on the workstation 2026-09-24**: VS2022 with the
       VC++ x86/x64 tools, Windows SDK 10.0.22621.0/10.0.26100.0, DUB 1.42.0, dub registry reachable.
+- [ ] Build recipe, taken from the project's own CI rather than guessed: `dub add-local` a recursive clone of
+      `i2d-imgui` as `0.8.0` and `dcv-i2d` as `0.3.0`; produce `build-aux/windows/inochi-creator.res` with
+      `rc.exe /v` (the step `dub build --config=meta` performs); then
+      `dub build --build=release --compiler=ldc2 --config=win32-full` with the Windows SDK environment loaded.
+- [ ] Known build break, worked around on the **build machine only**: `i18n-d` 1.0.2 reads the POSIX-only
+      `int_p_*`/`int_n_*` members of `struct lconv` unconditionally, and MSVC's `lconv` does not declare them — so
+      the dependency fails to compile for the Windows target under any current frontend, the project's own CI
+      included. It is not a toolchain-age problem: druntime 2.100 merged those fields into the Microsoft branch and
+      2.113 aligned the struct with MSVC. Our workaround is a one-file patched copy of that package (`lconvField`
+      falls back to 0) registered with `dub add-local`; upstream and this repository stay untouched, and runtime
+      behaviour is unaffected apart from international number-format flags reading 0 on Windows. Turning that patch
+      into a reproducible script under `tools/` is an open todo — today it exists only on one machine.
 - [ ] Prefer the **link** route over patching where possible (our own `dub` recipe importing the automesh
       modules) — upstream stays untouched, and the call site is ours. See `docs/skinning-survey.md`.
 - [ ] Build once, ship the artefact: the D toolchain is a build-machine dependency, never a user's.
