@@ -20,15 +20,22 @@ spec · **[upstream]** upstream documentation/README · **[paper]** publication,
 
 ## Rigging / mesh generation (candidates, none adopted)
 
+Full survey, including which of these actually ship code: **`docs/skinning-survey.md`**.
+
 | Item | Grade | Why we care |
 | --- | --- | --- |
-| SpriteToMesh — *Automatic Mesh Generation for 2D Skeletal Animation Using Learned Segmentation and Contour-Aware Vertex Placement* (arXiv 2602.21153) | [paper] | closest published match to "put vertices where deformation needs them" |
-| Bunraku — *Turning a Single Illustration into an Editable Live2D Character* (arXiv 2607.27348) | [paper] | single image → editable character; repository is thin (not a deployable toolchain) |
-| *A Semantic-Driven Framework for Layered 2D Character* (ACM 2025, 10.1145/3746059.3747707) | [paper] | semantic layer decomposition feeding rig construction |
+| `Inochi2D/inochi-creator` `v0_8` — `source/creator/viewport/common/automesh/{contours,grid}.d` | [source] | **the editor already has an automatic mesher**: contour mode (alpha → bwlabel → findContours → centroid moment → resample → scale/erode-dilate) and grid mode (opaque bounds → divideAxes → grid). Port these instead of inventing one. |
+| `MangoLion/stretchystudio` (MIT, 487★, pushed 2026-04-28) | [source] | real code: auto-triangulation, auto-rig from tagged PSD (DWPose ONNX or heuristic), vertex skinning, eye clipping, shape keys, hair physics; documented Live2D-export research stream |
+| `tsunehimatoi/psd2live` (GPL-3.0, 449★, pushed 2026-09-24) | [source] | real code: PSD → Cubism rig, constrained Delaunay + Lawson flips, deformer hierarchy incl. nine-axis head mesh, jelly-eye damped spring, hair pendulums. **Read for algorithms; do not copy code** (GPL-3.0). |
+| SpriteToMesh — *Automatic Mesh Generation for 2D Skeletal Animation…* (arXiv 2602.21153) | [paper] | parameterised version of the same pipeline; its negative result (vertex heatmap regression does not converge) argues for learned segmentation + algorithmic placement |
+| Bunraku — *Turning a Single Illustration into an Editable Live2D Character* (arXiv 2607.27348) | [paper] | predicts the whole character's parameter→displacement field jointly; **`SparcAI-Inc/Bunraku` holds one 722-byte readme, no code or weights as of 2026-09-24** |
+| CartoonAlive (arXiv 2507.17327) | [paper] | face-only Live2D generation via blendshapes + landmark→parameter MLP; **`Human3DAIGC/CartoonAlive` holds 3 files, no code** |
+| *A Semantic-Driven Framework for Layered 2D Character* (Spiritus, ACM 2025, 10.1145/3746059.3747707) | [paper] | text+sketch → character, shape-compatible mesh, 15-bone rigging, Spine export; no repository found |
 | *Automated Accessory Rigs for Layered 2D Character Illustrations* (UIST 2021, 10.1145/3472749.3474809) | [paper] | inferring motion relationships between layers — accessory/deformer hierarchies |
 | AniDiffusion — *Automatic Diffusion-Based Rigging* (arXiv 2503.15586) | [paper] | diffusion-based automatic rigging across topologies |
 | `l768350/3D_to_Live2D_Equivalent` | [unverified] | method reference only: generating Inochi2D head-turn/roll deformers *from a 3D model*. **Not our plan** — we hold no valid 3D reference asset and will not build on one. |
-| Live2D Cubism "Auto Mesh" | [upstream] | industrial reference for what "good enough automatic meshing" looks like |
+| Live2D Cubism "Automatic Mesh generator" / "Auto Generation of Deformer" | [upstream] | industrial reference for both meshing (dot interval, boundary margin, alpha threshold) and binding structure (AI part estimation → standard human deformer tree) |
+
 
 ## Our wider pipeline (context, not part of this repo)
 
