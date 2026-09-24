@@ -38,10 +38,18 @@ def test_english_readme_status_matches_the_code():
 
 
 def test_roadmap_mentions_every_capability():
-    """A capability may be named either as `` `name` `` or as `` `inochi2d name` ``."""
+    """Capabilities may appear as `` `name` ``, `` `inochi2d name` `` or `` `name/` ``.
+
+    Collected as tokens rather than matched as substrings: substring tests pass by accident (`` `bridge/` ``
+    contains `` `bridge`` but not `` `bridge` ``), and they would let a real omission through.
+    """
     roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
+    tokens: set[str] = set()
+    for raw in re.findall(r"`([^`]+)`", roadmap):
+        for word in re.split(r"[\s,]+", raw.strip()):
+            tokens.add(word.strip("/"))
     for name in CAPABILITIES:
-        assert f"`{name}`" in roadmap or f"`inochi2d {name}`" in roadmap, f"roadmap does not mention {name}"
+        assert name in tokens, f"roadmap does not mention {name} (tokens: {sorted(tokens)})"
 
 
 def test_requirements_cover_exactly_the_capabilities():
