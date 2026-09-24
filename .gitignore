@@ -1,0 +1,25 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# downloaded regression corpus (fetch with tools/fetch_examples.py)
+examples/*.inx
+examples/*.inp
+
+# local output
+textures/
+out/
+*.local.*
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

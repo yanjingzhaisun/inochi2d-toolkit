@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "inochi2d-toolkit"
+version = "0.1.0"
+description = "Read/write Inochi2D puppet files (INP/INX) and drive Inochi rigging from the command line — with an MCP server wrapper for agent use."
+readme = "README.md"
+license = { text = "BSD-2-Clause" }
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+rig = ["numpy>=1.26", "Pillow>=10.0"]
+
+[project.scripts]
+inochi2d = "inochi2d_toolkit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/inochi2d_toolkit"]
