@@ -99,12 +99,38 @@ animation engine. [source]/[upstream]
 5. **Verification stays ours.** Render at extreme parameter values, look at pictures — no upstream project
    gives us an acceptance gate for `.inx`.
 
+## There is no reflection path into the shipped binary
+
+Checked against `v0_8` before planning around it: the repository has **no plugin or `SharedLibrary` support**,
+**no use of `Object.factory` or `ClassInfo`**, and **no built-in HTTP/websocket surface** (the well-known
+`127.0.0.1:17320` endpoint belongs to a third-party MCP patch, not upstream). `dub.sdl` declares an
+executable — there is no library target to link against. D's `Object.factory` resolves names only inside one
+process with one druntime, and injecting a second druntime means two GCs and no exported class metadata, so
+"reflection into the running editor" is a dead end rather than a shortcut. **[source]**
+
+What works instead, in order of intrusion:
+
+1. **Link, do not patch** — write our own `dub` recipe whose `sourcePaths` point at the cloned creator sources,
+   add a `main.d` that instantiates `ContourAutoMeshProcessor`/`GridAutoMeshProcessor` and calls `autoMesh()`.
+   Upstream stays untouched (no fork, no patch, no merge conflicts) and the call site is our MIT code.
+2. **Patch + build Creator** — one entry point beside the one we already need for `--render-png`; gives a
+   headless editor, which is what visual review needs.
+3. **GUI automation** of the stock binary — no compile, but locale/layout dependent and needs a desktop session.
+
+## Build prerequisites (verified on the workstation, 2026-09-24)
+
+| Check | Result |
+| --- | --- |
+| VS2022 C++ workload (`vswhere -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`) | present — `C:\Program Files\Microsoft Visual Studio\2022\Community` |
+| Windows SDK | 10.0.22621.0 and 10.0.26100.0 |
+| DUB | 1.42.0 (2026-08-17), `C:\D\dmd2\windows\bin` |
+| Dub registry reachability | `code.dlang.org` returns HTTP 200 |
+| Clone | first attempt failed with `RPC failed; curl 92 HTTP/2 stream reset`; retried with `http.version=HTTP/1.1` and `--depth 1 --shallow-submodules` |
+
 ## Open questions recorded, not assumed
 
 - Does `autoMesh()`'s texture access work without a GL context? The processors build a CPU-side `Image` from
   the drawable's texture; whether pixel access needs an uploaded texture is unverified.
-- The build is the real risk, not the call: Creator must compile (DMD is installed; the VS2022 C++ workload is
-  unverified, and `bindbc-imgui` must be pinned to 0.7.0).
 - Are the automesh settings (sampling rate, scale, erode/dilate, grid axis scales) settable as plain instance
   fields from a headless caller, given `configure()` is the ImGui-only path? Verified shape says yes; not yet
   exercised.
