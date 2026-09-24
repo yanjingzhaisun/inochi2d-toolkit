@@ -97,6 +97,9 @@ mcp_servers:
 - **Verify before trusting.** Every write path is expected to be followed by `verify`, which is byte-level
   for textures and payload-deep-equal for JSON, plus structural checks (uuid uniqueness, mesh/uv parity,
   index and texture-id ranges, binding targets).
+- **English interfaces.** Everything a caller sees is English — CLI output, `--help` text, MCP tool
+  descriptions, exception messages, log lines — as are commit messages and `docs/`. Only the README is
+  translated, and this file is canonical; `tests/test_interface_language.py` enforces that.
 
 ## Format facts this toolkit relies on
 

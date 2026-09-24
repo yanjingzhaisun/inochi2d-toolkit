@@ -84,6 +84,8 @@ mcp_servers:
   Inochi Creator 0.8.6。0.9 线重构了变形绑定并换了新容器（`INP2`）——见 `docs/architecture.md`。
 - **先校验再相信。** 每条写路径都应紧跟一次 `verify`：纹比对到字节级、JSON 做 payload 深等，外加结构检查
   （uuid 唯一、mesh/uv 成对、索引与纹理 id 范围、绑定目标）。
+- **接口一律英文。** 调用方能看见的东西全用英文——CLI 输出、`--help` 文本、MCP 工具描述、异常信息、日志——
+  commit message 与 `docs/` 也是。只有 README 有译本，且以英文版为准；由 `tests/test_interface_language.py` 守住。
 
 ## 本工具依赖的格式事实
 

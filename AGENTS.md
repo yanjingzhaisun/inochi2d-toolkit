@@ -33,6 +33,17 @@ Read `README.md` and `docs/architecture.md` before changing anything. Then:
 - Add a test with every behaviour; if a rule cannot be tested, it goes in `docs/` as an open question
   instead of into code as an assumption.
 
+## Interface language
+
+- **English at every boundary a caller can see**: CLI stdout/stderr and `--help` text, MCP tool names,
+  descriptions and returned strings, exception messages, log lines, and the comments that carry reasoning.
+- Commit messages, branch names and PR text are English too — the history is part of the interface.
+- `docs/` and `AGENTS.md` are English. The only translated files are `README.zh-CN.md` and `README.ja.md`,
+  which follow the README rule above.
+- Non-ASCII in code is limited to typography (`—`, `…`, `→`); no CJK, ever.
+- `tests/test_interface_language.py` enforces all of this. A Chinese sentence printed by `inochi2d status`
+  once survived review, so the rule is checked mechanically instead of trusted.
+
 ## Documentation
 
 - The README is maintained in three languages: `README.md` (**English, the standard entry point**),

@@ -135,7 +135,8 @@ def cmd_status(_: argparse.Namespace) -> int:
     for name, (status, description) in CAPABILITIES.items():
         print(f"  {name:<{width}}  {status:<11} {description}")
     print()
-    print("planned 的能力在被实现之前会以未实现错误退出；本清单必须与代码同步。")
+    print("Planned capabilities exit with a not-implemented error until they exist; keep this list in")
+    print("sync with the code (tests enforce it).")
     return 0
 
 
