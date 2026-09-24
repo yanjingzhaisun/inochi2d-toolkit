@@ -57,5 +57,9 @@ Read `README.md` and `docs/architecture.md` before changing anything. Then:
 
 ## Repository hygiene
 
+- **Licences: `THIRD_PARTY_NOTICES.md` is the authority.** Update it in the same commit whenever we link,
+  vendor, port or take an algorithm from another project. Linking (BSD-2) leaves our code MIT; porting creates
+  a derivative work that must carry the upstream notice; GPL-3.0 projects are read-only references — no code,
+  no linkage.
 - Source only: no editor binaries, no Inochi SDKs, no model files, no large experiment output in git.
 - Keep `CAPABILITIES` in `cli.py`, the README table and `docs/roadmap.md` in sync in the same commit.
